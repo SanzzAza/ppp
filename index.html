@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DramaCina - Nonton Drama China Subtitle Indonesia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+    <a class="nav-brand" onclick="goHome()"><i class="fas fa-dragon"></i><span>DramaCina</span></a>
+    <div class="nav-center">
+        <a class="nav-link active" data-nav="home" onclick="goHome()"><i class="fas fa-home"></i> Beranda</a>
+        <a class="nav-link" data-nav="populer" onclick="showPopuler()"><i class="fas fa-fire"></i> Populer</a>
+        <a class="nav-link" data-nav="browse" onclick="showBrowse()"><i class="fas fa-th-large"></i> Jelajahi</a>
+    </div>
+    <div class="nav-right">
+        <div class="source-sw">
+            <button class="src-btn active" data-src="melolo" onclick="switchSrc('melolo')">Melolo</button>
+            <button class="src-btn" data-src="flickreels" onclick="switchSrc('flickreels')">FlickReels</button>
+        </div>
+        <div class="search-box" id="searchBox">
+            <input type="text" id="searchInput" placeholder="Cari drama..." onkeydown="if(event.key==='Enter')doSearch()">
+            <button class="s-btn" onclick="toggleSearch()"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="hamburger" onclick="toggleMM()"><span></span><span></span><span></span></div>
+    </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" onclick="goHome();closeMM()"><i class="fas fa-home"></i> Beranda</a>
+    <a class="nav-link" onclick="showPopuler();closeMM()"><i class="fas fa-fire"></i> Populer</a>
+    <a class="nav-link" onclick="showBrowse();closeMM()"><i class="fas fa-th-large"></i> Jelajahi</a>
+    <div class="m-source">
+        <button class="src-btn active" data-src="melolo" onclick="switchSrc('melolo')">Melolo</button>
+        <button class="src-btn" data-src="flickreels" onclick="switchSrc('flickreels')">FlickReels</button>
+    </div>
+    <div class="m-search">
+        <input type="text" id="mobileSearchInput" placeholder="Cari drama..." onkeydown="if(event.key==='Enter'){doSearch(this.value);closeMM()}">
+    </div>
+</div>
+
+<main class="main-content" id="main"></main>
+
+<div class="mod-ov" id="dramaModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <button class="mod-x" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        <div id="modalInner"></div>
+    </div>
+</div>
+
+<div class="pl-ov" id="playerOv" onclick="if(event.target===this)closePl()">
+    <div class="pl-c" onclick="event.stopPropagation()">
+        <button class="pl-x" onclick="closePl()"><i class="fas fa-times"></i></button>
+        <div id="plArea"></div>
+        <p class="pl-title" id="plTitle"></p>
+        <p class="pl-info" id="plInfo"></p>
+    </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-info-circle"></i><span id="toastTxt"></span></div>
+<button class="btt" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-chevron-up"></i></button>
+
+<script src="js/app.js"></script>
+</body>
+</html>
