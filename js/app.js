@@ -331,7 +331,29 @@ function epCard(ep,i,dTitle,s,dramaId){const num=getEpNum(ep,i),rawThumb=getEpTh
 async function streamML(vidId,title){if(!vidId||vidId==='undefined'){toast('ID tidak valid');return;}toast('Memuat video...');const data=await ML.stream(vidId);if(!data){toast('Gagal memuat stream');return;}let url='';url=gv(data,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video');if(!url&&data.data){if(typeof data.data==='string'&&data.data.startsWith('http'))url=data.data;else if(typeof data.data==='object')url=gv(data.data,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video');}if(!url&&data.result){if(typeof data.result==='string'&&data.result.startsWith('http'))url=data.result;else if(typeof data.result==='object')url=gv(data.result,'url','video_url','stream_url','playUrl','src','link','file');}if(url){playVid(url,title);}else{toast('URL video tidak ditemukan');}}
 async function streamDB(dramaId,epIndex,title){if(!dramaId||dramaId==='undefined'){toast('ID tidak valid');return;}toast('Memuat video...');const data=await DB.stream(dramaId,epIndex);if(!data){toast('Gagal memuat stream');return;}let url='';url=gv(data,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video');if(!url&&data.data){if(typeof data.data==='string'&&data.data.startsWith('http'))url=data.data;else if(typeof data.data==='object')url=gv(data.data,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video');}if(url){playVid(url,title);}else{toast('URL video tidak ditemukan');}}
 
-function playVid(url,title){if(!url||url==='#'||url==='undefined'||url===''){toast('Link tidak tersedia');return;}const ov=document.getElementById('playerOv'),area=document.getElementById('plArea');document.getElementById('plTitle').textContent=title;document.getElementById('plInfo').textContent=`Sumber: ${srcLabel(src)}`;if(url.match(/\.(mp4|webm|ogg)(\?|$)/i)){area.innerHTML=`<video src="${url}" controls autoplay playsinline></video>`;}else if(url.includes('.m3u8')){area.innerHTML=`<video id="hlsV" controls autoplay playsinline></video>`;const v=document.getElementById('hlsV');if(v.canPlayType('application/vnd.apple.mpegurl'))v.src=url;else area.innerHTML=`<iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay;encrypted-media;picture-in-picture"></iframe>`;}else{area.innerHTML=`<iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay;encrypted-media;picture-in-picture"></iframe>`;}ov.classList.add('show');document.body.style.overflow='hidden';}
+function parseEpMeta(fullTitle=''){const m=String(fullTitle).match(/(.+?)\s*-\s*Episode\s*(\d+)/i);if(!m)return{drama:fullTitle||'DramaCina',ep:'-'};return{drama:m[1].trim(),ep:m[2]};}
+
+function buildMobilePlayerUI(title){const meta=parseEpMeta(title);return`<div class="pl-mobile-ui"><div class="pl-mobile-top"><div class="left"><button class="back" onclick="closePl()"><i class="fas fa-chevron-left"></i></button><div class="m-title">${esc(meta.drama)}</div></div><div class="m-ep">EP.${esc(meta.ep)}</div></div><div class="pl-mobile-side"><button onclick="toast('Fitur bagikan segera hadir')"><i class="fas fa-paper-plane"></i><span>Bagikan</span></button><button onclick="toast('Buka modal untuk pilih episode lain')"><i class="fas fa-list"></i><span>Episode</span></button></div><div class="pl-mobile-bottom"><div class="ep-chip"><img class="thumb" src="${PH_EP+meta.ep}" alt="Episode"><span class="txt">Episode ${esc(meta.ep)}</span></div><button class="next" onclick="toast('Episode berikutnya belum tersedia')"><i class="fas fa-chevron-right"></i></button></div></div>`;}
+
+function playVid(url,title){
+    if(!url||url==='#'||url==='undefined'||url===''){toast('Link tidak tersedia');return;}
+    const ov=document.getElementById('playerOv'),area=document.getElementById('plArea');
+    const safeTitle=title||'DramaCina';
+    document.getElementById('plTitle').textContent=safeTitle;
+    document.getElementById('plInfo').textContent=`Sumber: ${srcLabel(src)}`;
+
+    let player='';
+    if(url.match(/\.(mp4|webm|ogg)(\?|$)/i))player=`<video src="${url}" controls autoplay playsinline></video>`;
+    else if(url.includes('.m3u8'))player=`<video id="hlsV" controls autoplay playsinline></video>`;
+    else player=`<iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay;encrypted-media;picture-in-picture"></iframe>`;
+
+    area.innerHTML=`<div class="pl-stage">${player}${buildMobilePlayerUI(safeTitle)}</div>`;
+
+    if(url.includes('.m3u8')){const v=document.getElementById('hlsV');if(v&&v.canPlayType('application/vnd.apple.mpegurl'))v.src=url;else if(v)area.innerHTML=`<div class="pl-stage"><iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay;encrypted-media;picture-in-picture"></iframe>${buildMobilePlayerUI(safeTitle)}</div>`;}
+
+    ov.classList.add('show');
+    document.body.style.overflow='hidden';
+}
 
 function closePl(){document.getElementById('plArea').innerHTML='';document.getElementById('playerOv').classList.remove('show');if(!document.getElementById('dramaModal').classList.contains('show'))document.body.style.overflow='';}
 function closeModal(){document.getElementById('dramaModal').classList.remove('show');document.body.style.overflow='';}
