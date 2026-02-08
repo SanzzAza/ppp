@@ -20,6 +20,8 @@ let isLoading = false;
 let hasMore = true;
 let displayedCount = 0;
 const ITEMS_PER_LOAD = 12;
+const DRAMABOX_MAX_PAGE = 12;
+const DRAMABOX_MIN_BATCH = 3;
 
 let dramaboxCache = {
     all: [],
@@ -129,34 +131,57 @@ const DB={
     stream:(dramaId,epIndex)=>api(`${API_D}/stream?dramaId=${dramaId}&episodeIndex=${epIndex}`)
 };
 
+async function collectDramaBoxPages(fetcher, maxPage = DRAMABOX_MAX_PAGE) {
+    const merged = [];
+    let emptyStreak = 0;
+
+    for (let page = 1; page <= maxPage; page++) {
+        const raw = await fetcher(page);
+        const list = smartExtract(raw);
+
+        if (!list.length) {
+            emptyStreak++;
+            if (emptyStreak >= 2) break;
+            continue;
+        }
+
+        merged.push(...list);
+
+        // Kalau data per halaman sudah sangat sedikit, kemungkinan sudah mentok.
+        if (list.length < DRAMABOX_MIN_BATCH) break;
+    }
+
+    return merged;
+}
+
 async function loadAllDramaBox() {
     if (dramaboxCache.loaded || dramaboxCache.loading) return dramaboxCache.all;
     dramaboxCache.loading = true;
 
-    const allData = [];
-    const seenIds = new Set();
+    try {
+        const [homeList, popularList, newList] = await Promise.all([
+            collectDramaBoxPages(DB.home),
+            collectDramaBoxPages(DB.populer),
+            collectDramaBoxPages(DB.newDrama)
+        ]);
 
-    const [home1, home2, home3, pop1, pop2, new1, new2] = await Promise.all([
-        DB.home(1), DB.home(2), DB.home(3), DB.populer(1), DB.populer(2), DB.newDrama(1), DB.newDrama(2)
-    ]);
+        const allData = [];
+        const seenIds = new Set();
 
-    const sources = [home1, home2, home3, pop1, pop2, new1, new2];
-    for (const data of sources) {
-        const list = smartExtract(data);
-        for (const d of list) {
+        for (const d of [...homeList, ...popularList, ...newList]) {
             const id = getId(d);
-            if (id && !seenIds.has(id)) {
-                seenIds.add(id);
-                allData.push(d);
-                cachePoster(d);
-            }
+            if (!id || seenIds.has(id)) continue;
+            seenIds.add(id);
+            allData.push(d);
+            cachePoster(d);
         }
-    }
 
-    dramaboxCache.all = allData;
-    dramaboxCache.loaded = true;
-    dramaboxCache.loading = false;
-    return allData;
+        dramaboxCache.all = allData;
+        dramaboxCache.loaded = true;
+        return allData;
+    } finally {
+        dramaboxCache.loading = false;
+    }
 }
 
 function gv(d,...k){for(const x of k)if(d[x]!==undefined&&d[x]!==null&&d[x]!=='')return d[x];return '';}
