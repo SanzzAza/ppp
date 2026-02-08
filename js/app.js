@@ -327,9 +327,51 @@ async function openDrama(id,s){
     inner.innerHTML=`<div class="mod-ban">${imgTag(bannerRaw,esc(title),'',PH_BAN,900)}<div class="mod-ban-ov"></div><div class="mod-pa"><div class="mod-poster">${imgTag(posterRaw,esc(title),'',PH,400)}</div><div class="mod-ta"><h2>${esc(title)}</h2><div class="meta-r">${rating?`<span style="color:var(--gold)"><i class="fas fa-star"></i> ${rating}</span>`:''}${views?`<span style="color:var(--gold)"><i class="fas fa-eye"></i> ${esc(String(views))}</span>`:''}${epCnt?`<span><i class="fas fa-film"></i> ${epCnt} Ep</span>`:''}${yr?`<span><i class="far fa-calendar"></i> ${yr}</span>`:''}${status?`<span><i class="fas fa-circle" style="font-size:6px;color:var(--green)"></i> ${esc(status)}</span>`:''}${lg?`<span><i class="fas fa-globe"></i> ${esc(lg)}</span>`:''}<span style="color:${s==='dramabox'?'var(--orange)':'var(--blue)'}">${srcLabel(s)}</span></div></div></div></div><div class="mod-body">${desc?`<p class="mod-desc">${esc(desc)}</p>`:''}${genres.length?`<div class="mod-tags">${genres.map(g=>`<span class="mod-tag">${esc(g)}</span>`).join('')}</div>`:''}<div class="info-grid">${epCnt?`<div class="info-item"><div class="lbl">Episode</div><div class="val">${epCnt}</div></div>`:''}${views?`<div class="info-item"><div class="lbl">Views</div><div class="val"><i class="fas fa-eye" style="color:var(--primary);font-size:11px"></i> ${esc(String(views))}</div></div>`:''}${yr?`<div class="info-item"><div class="lbl">Tahun</div><div class="val">${yr}</div></div>`:''}${lg?`<div class="info-item"><div class="lbl">Bahasa</div><div class="val">${esc(lg)}</div></div>`:''}<div class="info-item"><div class="lbl">Sumber</div><div class="val">${srcIcon(s)} ${srcLabel(s)}</div></div></div><div class="ep-sec"><div class="ep-h"><h3><i class="fas fa-list-ol"></i> Daftar Episode</h3>${eps.length?`<span class="ep-badge">${eps.length} Episode</span>`:''}</div>${eps.length>0?`<div class="ep-grid">${eps.map((ep,i)=>epCard(ep,i,title,s,dramaIdForStream)).join('')}</div>`:`<div class="empty" style="padding:30px 12px"><i class="fas fa-video" style="font-size:32px"></i><h3>Episode Belum Tersedia</h3></div>`}</div></div>`;
 }
 
-function epCard(ep,i,dTitle,s,dramaId){const num=getEpNum(ep,i),rawThumb=getEpThumb(ep,num),dur=ep.duration,vidId=getEpVid(ep),url=getEpUrl(ep);const durStr=dur?fmtDur(dur):'';const epIndex=ep.episodeIndex!==undefined?ep.episodeIndex:i;let oc;if(s==='melolo'&&vidId)oc=`streamML('${escA(vidId)}','${escA(dTitle)} - Episode ${num}')`;else if(s==='dramabox')oc=`streamDB('${escA(dramaId)}',${epIndex},'${escA(dTitle)} - Episode ${num}')`;else if(url)oc=`playVid('${escA(url)}','${escA(dTitle)} - Episode ${num}')`;else oc=`toast('Link tidak tersedia')`;return`<div class="ep-card" onclick="${oc}"><div class="ep-num">${num}</div><div class="ep-thumb">${imgTag(rawThumb,'Ep '+num,'',PH_EP+num,200)}<div class="ep-pl"><i class="fas fa-play-circle"></i></div></div><div class="ep-inf"><h4>Episode ${num}</h4><p>${durStr?`<i class="far fa-clock"></i> ${durStr}`:`Episode ke-${num}`}</p></div>${durStr?`<div class="ep-dur"><i class="far fa-clock"></i> ${durStr}</div>`:''}</div>`;}
-async function streamML(vidId,title){if(!vidId||vidId==='undefined'){toast('ID tidak valid');return;}toast('Memuat video...');const data=await ML.stream(vidId);if(!data){toast('Gagal memuat stream');return;}let url='';url=gv(data,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video');if(!url&&data.data){if(typeof data.data==='string'&&data.data.startsWith('http'))url=data.data;else if(typeof data.data==='object')url=gv(data.data,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video');}if(!url&&data.result){if(typeof data.result==='string'&&data.result.startsWith('http'))url=data.result;else if(typeof data.result==='object')url=gv(data.result,'url','video_url','stream_url','playUrl','src','link','file');}if(url){playVid(url,title);}else{toast('URL video tidak ditemukan');}}
-async function streamDB(dramaId,epIndex,title){if(!dramaId||dramaId==='undefined'){toast('ID tidak valid');return;}toast('Memuat video...');const data=await DB.stream(dramaId,epIndex);if(!data){toast('Gagal memuat stream');return;}let url='';url=gv(data,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video');if(!url&&data.data){if(typeof data.data==='string'&&data.data.startsWith('http'))url=data.data;else if(typeof data.data==='object')url=gv(data.data,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video');}if(url){playVid(url,title);}else{toast('URL video tidak ditemukan');}}
+
+function extractPlayableUrl(payload){
+    if(!payload)return'';
+    if(typeof payload==='string'){
+        const v=payload.trim();
+        if(v.startsWith('http')&&(v.includes('.mp4')||v.includes('.m3u8')||v.includes('stream')||v.includes('play')||v.includes('video')||v.includes('embed')))return v;
+        return '';
+    }
+
+    if(Array.isArray(payload)){
+        for(const item of payload){const u=extractPlayableUrl(item);if(u)return u;}
+        return '';
+    }
+
+    if(typeof payload==='object'){
+        const direct=gv(payload,'url','video_url','stream_url','playUrl','streamUrl','src','link','file','mp4','hls','play_url','videoUrl','stream','video','m3u8','playAddr');
+        if(typeof direct==='string'&&direct.startsWith('http'))return direct;
+        for(const key in payload){const u=extractPlayableUrl(payload[key]);if(u)return u;}
+    }
+
+    return '';
+}
+
+function epCard(ep,i,dTitle,s,dramaId){const num=getEpNum(ep,i),rawThumb=getEpThumb(ep,num),dur=ep.duration,vidId=getEpVid(ep),url=getEpUrl(ep);const durStr=dur?fmtDur(dur):'';const epIndex=ep.episodeIndex!==undefined?ep.episodeIndex:i;let oc;if(s==='melolo'&&vidId)oc=`streamML('${escA(vidId)}','${escA(dTitle)} - Episode ${num}')`;else if(s==='dramabox')oc=`streamDB('${escA(dramaId)}',${epIndex},'${escA(dTitle)} - Episode ${num}','${escA(url)}')`;else if(url)oc=`playVid('${escA(url)}','${escA(dTitle)} - Episode ${num}')`;else oc=`toast('Link tidak tersedia')`;return`<div class="ep-card" onclick="${oc}"><div class="ep-num">${num}</div><div class="ep-thumb">${imgTag(rawThumb,'Ep '+num,'',PH_EP+num,200)}<div class="ep-pl"><i class="fas fa-play-circle"></i></div></div><div class="ep-inf"><h4>Episode ${num}</h4><p>${durStr?`<i class="far fa-clock"></i> ${durStr}`:`Episode ke-${num}`}</p></div>${durStr?`<div class="ep-dur"><i class="far fa-clock"></i> ${durStr}</div>`:''}</div>`;}
+async function streamML(vidId,title){
+    if(!vidId||vidId==='undefined'){toast('ID tidak valid');return;}
+    toast('Memuat video...');
+    const data=await ML.stream(vidId);
+    if(!data){toast('Gagal memuat stream');return;}
+    const url=extractPlayableUrl(data)||extractPlayableUrl(data?.data)||extractPlayableUrl(data?.result);
+    if(url)playVid(url,title);
+    else toast('URL video tidak ditemukan');
+}
+
+async function streamDB(dramaId,epIndex,title,fallbackUrl=''){
+    if(!dramaId||dramaId==='undefined'){toast('ID tidak valid');return;}
+    toast('Memuat video...');
+
+    let data=null;
+    try{data=await DB.stream(dramaId,epIndex);}catch(_){data=null;}
+
+    const url=extractPlayableUrl(data)||extractPlayableUrl(data?.data)||extractPlayableUrl(data?.result)||extractPlayableUrl(fallbackUrl);
+    if(url)playVid(url,title);
+    else toast('URL video tidak ditemukan');
+}
 
 function parseEpMeta(fullTitle=''){const m=String(fullTitle).match(/(.+?)\s*-\s*Episode\s*(\d+)/i);if(!m)return{drama:fullTitle||'DramaCina',ep:'-'};return{drama:m[1].trim(),ep:m[2]};}
 
