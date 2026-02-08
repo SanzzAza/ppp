@@ -374,8 +374,35 @@ async function streamDB(dramaId,epIndex,title,fallbackUrl=''){
 }
 
 function parseEpMeta(fullTitle=''){const m=String(fullTitle).match(/(.+?)\s*-\s*Episode\s*(\d+)/i);if(!m)return{drama:fullTitle||'DramaCina',ep:'-'};return{drama:m[1].trim(),ep:m[2]};}
+function fmtClock(sec){if(!isFinite(sec)||sec<0)return'00:00';const m=Math.floor(sec/60),s=Math.floor(sec%60);return`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;}
 
-function buildMobilePlayerUI(title){const meta=parseEpMeta(title);return`<div class="pl-mobile-ui"><div class="pl-mobile-top"><div class="left"><button class="back" onclick="closePl()"><i class="fas fa-chevron-left"></i></button><div class="m-title">${esc(meta.drama)}</div></div><div class="m-ep">EP.${esc(meta.ep)}</div></div><div class="pl-mobile-side"><button onclick="toast('Fitur bagikan segera hadir')"><i class="fas fa-paper-plane"></i><span>Bagikan</span></button><button onclick="toast('Buka modal untuk pilih episode lain')"><i class="fas fa-list"></i><span>Episode</span></button></div><div class="pl-mobile-bottom"><div class="ep-chip"><img class="thumb" src="${PH_EP+meta.ep}" alt="Episode"><span class="txt">Episode ${esc(meta.ep)}</span></div><button class="next" onclick="toast('Episode berikutnya belum tersedia')"><i class="fas fa-chevron-right"></i></button></div></div>`;}
+function buildMobilePlayerUI(title){
+    const meta=parseEpMeta(title);
+    return`<div class="pl-mobile-ui"><div class="pl-mobile-top"><div class="left"><button class="back" onclick="closePl()"><i class="fas fa-chevron-left"></i></button><div class="m-title">${esc(meta.drama)}</div></div><div class="m-ep">EP.${esc(meta.ep)}</div></div><button class="pl-center-play" id="plCenterPlay"><i class="fas fa-play"></i></button><div class="pl-mobile-side"><button onclick="toast('Fitur simpan segera hadir')"><i class="far fa-bookmark"></i><span>Simpan</span></button><button onclick="toast('Buka modal untuk pilih episode lain')"><i class="fas fa-list"></i><span>Episode</span></button><button onclick="toast('Fitur bagikan segera hadir')"><i class="fas fa-share-alt"></i><span>Bagikan</span></button></div><div class="pl-mobile-controls" id="plMobileControls"><button class="play" id="plPlayBtn"><i class="fas fa-play"></i></button><span class="t" id="plCurrent">00:00</span><input type="range" id="plSeek" min="0" max="100" value="0"><span class="t" id="plDuration">00:00</span></div></div>`;
+}
+
+function initMobileVideoControls(){
+    const video=document.getElementById('plVideo');
+    const playBtn=document.getElementById('plPlayBtn');
+    const center=document.getElementById('plCenterPlay');
+    const seek=document.getElementById('plSeek');
+    const cur=document.getElementById('plCurrent');
+    const dur=document.getElementById('plDuration');
+    if(!video||!playBtn||!seek||!cur||!dur)return;
+
+    const sync=()=>{const paused=video.paused;playBtn.innerHTML=`<i class="fas fa-${paused?'play':'pause'}"></i>`;if(center)center.style.display=paused?'flex':'none';cur.textContent=fmtClock(video.currentTime||0);dur.textContent=fmtClock(video.duration||0);seek.value=(video.duration?((video.currentTime/video.duration)*100):0);};
+    const toggle=()=>{if(video.paused)video.play().catch(()=>{});else video.pause();};
+
+    playBtn.onclick=toggle;
+    if(center)center.onclick=toggle;
+    video.addEventListener('click',toggle);
+    video.addEventListener('timeupdate',sync);
+    video.addEventListener('loadedmetadata',sync);
+    video.addEventListener('play',sync);
+    video.addEventListener('pause',sync);
+    seek.addEventListener('input',()=>{if(video.duration)video.currentTime=(seek.value/100)*video.duration;});
+    sync();
+}
 
 function playVid(url,title){
     if(!url||url==='#'||url==='undefined'||url===''){toast('Link tidak tersedia');return;}
@@ -384,14 +411,16 @@ function playVid(url,title){
     document.getElementById('plTitle').textContent=safeTitle;
     document.getElementById('plInfo').textContent=`Sumber: ${srcLabel(src)}`;
 
+    const isVideo=url.match(/\.(mp4|webm|ogg|m3u8)(\?|$)/i)||url.includes('.m3u8');
     let player='';
-    if(url.match(/\.(mp4|webm|ogg)(\?|$)/i))player=`<video src="${url}" controls autoplay playsinline></video>`;
-    else if(url.includes('.m3u8'))player=`<video id="hlsV" controls autoplay playsinline></video>`;
+    if(isVideo)player=`<video id="plVideo" src="${url}" autoplay playsinline preload="metadata"></video>`;
     else player=`<iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay;encrypted-media;picture-in-picture"></iframe>`;
 
     area.innerHTML=`<div class="pl-stage">${player}${buildMobilePlayerUI(safeTitle)}</div>`;
 
-    if(url.includes('.m3u8')){const v=document.getElementById('hlsV');if(v&&v.canPlayType('application/vnd.apple.mpegurl'))v.src=url;else if(v)area.innerHTML=`<div class="pl-stage"><iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay;encrypted-media;picture-in-picture"></iframe>${buildMobilePlayerUI(safeTitle)}</div>`;}
+    const v=document.getElementById('plVideo');
+    if(v&&url.includes('.m3u8')&&!v.canPlayType('application/vnd.apple.mpegurl')){area.innerHTML=`<div class="pl-stage"><iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay;encrypted-media;picture-in-picture"></iframe>${buildMobilePlayerUI(safeTitle)}</div>`;}
+    else initMobileVideoControls();
 
     ov.classList.add('show');
     document.body.style.overflow='hidden';

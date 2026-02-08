@@ -174,19 +174,19 @@ body{font-family:'Poppins',sans-serif;background:var(--bg-dark);color:var(--text
 .pl-title{margin-top:10px;font-size:14px;font-weight:600}
 .pl-info{margin-top:4px;font-size:11px;color:var(--text-muted)}
 .pl-mobile-ui{display:none}
-.pl-mobile-top{position:absolute;top:14px;left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;z-index:4;pointer-events:none}
+.pl-mobile-top{position:absolute;top:14px;left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;z-index:6;pointer-events:none}
 .pl-mobile-top .left{display:flex;align-items:center;gap:10px;min-width:0}
-.pl-mobile-top .back{pointer-events:auto;border:none;background:rgba(0,0,0,.45);color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px}
-.pl-mobile-top .m-title{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65vw}
-.pl-mobile-top .m-ep{font-size:14px;font-weight:700}
-.pl-mobile-side{position:absolute;right:10px;bottom:120px;display:flex;flex-direction:column;gap:12px;z-index:4}
-.pl-mobile-side button{border:none;background:rgba(0,0,0,.45);color:#fff;padding:10px 12px;border-radius:14px;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:4px}
-.pl-mobile-side i{font-size:18px}
-.pl-mobile-bottom{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.86);z-index:4;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.pl-mobile-bottom .ep-chip{display:flex;align-items:center;gap:10px;color:#fff;min-width:0}
-.pl-mobile-bottom .thumb{width:48px;height:48px;border-radius:8px;background:#222;object-fit:cover}
-.pl-mobile-bottom .txt{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl-mobile-bottom .next{background:none;border:none;color:#fff;font-size:28px;line-height:1}
+.pl-mobile-top .back{pointer-events:auto;border:none;background:transparent;color:#fff;font-size:34px;line-height:1}
+.pl-mobile-top .m-title{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65vw;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.pl-mobile-top .m-ep{font-size:18px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.pl-center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:128px;height:128px;border-radius:50%;border:none;background:rgba(0,0,0,.35);color:#fff;font-size:52px;z-index:6;display:flex;align-items:center;justify-content:center}
+.pl-mobile-side{position:absolute;right:16px;top:50%;transform:translateY(-35%);display:flex;flex-direction:column;gap:20px;z-index:6}
+.pl-mobile-side button{border:none;background:none;color:#fff;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.pl-mobile-side i{width:70px;height:70px;border-radius:50%;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:30px}
+.pl-mobile-controls{position:absolute;left:18px;right:18px;bottom:22px;background:rgba(20,20,20,.75);backdrop-filter:blur(3px);border-radius:22px;z-index:6;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.pl-mobile-controls .play{border:none;background:none;color:#fff;font-size:28px;width:36px}
+.pl-mobile-controls .t{font-size:14px;color:#fff;min-width:48px}
+.pl-mobile-controls input[type='range']{flex:1;accent-color:#fff}
 .btt{position:fixed;bottom:20px;left:20px;z-index:999;width:40px;height:40px;border-radius:50%;border:none;background:var(--gradient-primary);color:#fff;font-size:15px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:var(--shadow-glow);transition:var(--transition)}
 .btt.show{display:flex}
 .btt:hover{transform:translateY(-3px)}
@@ -211,7 +211,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg-dark);color:var(--text
     .pl-ov{padding:0;background:#000}
     .pl-c{max-width:100%;height:100vh}
     .pl-x{display:none}
-    .pl-stage,.pl-stage video,.pl-stage iframe{height:100vh;aspect-ratio:9/16;border-radius:0;object-fit:cover}
+    .pl-stage,.pl-stage video,.pl-stage iframe{height:100vh;aspect-ratio:9/16;border-radius:0;object-fit:cover}.pl-center-play{width:110px;height:110px;font-size:44px}.pl-mobile-side i{width:64px;height:64px;font-size:26px}
     .pl-title,.pl-info{display:none}
     .pl-mobile-ui{display:block}
 }
