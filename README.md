@@ -1,6 +1,6 @@
 # DramaCina Frontend
 
-Struktur file setelah dirapikan:
+Struktur file hasil pemisahan kode:
 
 ```text
 .
@@ -11,7 +11,7 @@ Struktur file setelah dirapikan:
     └── app.js
 ```
 
-## Catatan pengecekan singkat
-- HTML sudah dipisah dari CSS/JS agar lebih mudah maintenance.
-- Seluruh fungsi JavaScript tetap global agar kompatibel dengan `onclick` inline di markup.
-- Endpoint API eksternal tetap sama seperti kode asal.
+## Ringkasan pengecekan
+- Struktur sudah dipisah antara tampilan (`index.html`), style (`css/style.css`), dan logika aplikasi (`js/app.js`).
+- Source data sekarang mendukung 3 provider: **Melolo**, **FlickReels**, dan **DramaBox**.
+- Fitur list/search memakai mekanisme **Load More** agar lebih ringan saat render awal.
